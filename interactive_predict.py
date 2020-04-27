@@ -1,5 +1,6 @@
 from common import Common
 from extractor import Extractor
+import pickle
 
 SHOW_TOP_CONTEXTS = 10
 MAX_PATH_LENGTH = 8
@@ -20,6 +21,24 @@ class InteractivePredictor:
     def read_file(input_filename):
         with open(input_filename, 'r') as file:
             return file.readlines()
+    
+    def save_results(self, prediction_results):
+        results = dict()
+        for index, method_prediction in prediction_results.items():
+            original_name = method_prediction.original_name
+            if self.config.BEAM_WIDTH == 0:
+                predicted_name = [step.prediction for step in method_prediction.predictions]
+            else:
+                predicted_name = ""
+                for predicted_seq in method_prediction.predictions:
+                    predicted_name = predicted_name + predicted_seq.prediction
+            
+            results[original_name] = predicted_name
+        
+        with open('method_to_predicted_names.pickle', 'wb') as handle:
+            pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 
     def predict(self):
         input_filename = 'Input.java'
@@ -38,6 +57,11 @@ class InteractivePredictor:
             model_results = self.model.predict(predict_lines)
 
             prediction_results = Common.parse_results(model_results, pc_info_dict, topk=SHOW_TOP_CONTEXTS)
+            
+            # saving all the original name : predictions in a pickle file
+            # sample pair - get|name : ['get', 'name', 'length']
+            self.save_results(prediction_results)
+
             for index, method_prediction in prediction_results.items():
                 print('Original name:\t' + method_prediction.original_name)
                 if self.config.BEAM_WIDTH == 0:
