@@ -4,7 +4,7 @@ from os import listdir
 import os
 from os.path import isfile, join
 
-mypath = '/Users/yagyanshbhatia/code2seq/data/valid'
+mypath = '/home/gpudata/yagyansh/yagyansh/code2seq/data/valid'
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and f[-5:]=='jsonl']
 
 for f in onlyfiles:
